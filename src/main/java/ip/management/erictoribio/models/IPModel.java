@@ -18,14 +18,11 @@ import lombok.Setter;
 public class IPModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @NotNull
     public String ip;
 
     @NotNull
-    public Boolean status;
+    public String status;
 
     
 }
