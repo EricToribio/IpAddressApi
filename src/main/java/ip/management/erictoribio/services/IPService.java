@@ -25,17 +25,23 @@ public class IPService {
 
     // ----------------Add all ips in CIDR Block----------------------//
 
-    public void addBlock(String Ip) throws UnknownHostException {
+    public String addBlock(String Ip) throws UnknownHostException {
         CIDRUtils cidrUtils = new CIDRUtils(Ip);
         String netAddress = cidrUtils.getNetworkAddress();
+        IPModel networkIp = new IPModel();
+        networkIp.setIp(netAddress);
+        networkIp.setStatus("Network");
+        ipRepo.save(networkIp);
         String brodcastAddress = cidrUtils.getBroadcastAddress();
-        System.out.println(netAddress);
-        System.out.println(brodcastAddress);
+        IPModel brodIp = new IPModel();
+        brodIp.setIp(brodcastAddress);
+        brodIp.setStatus("Brodcast");
+        ipRepo.save(brodIp);
         String newIp = netAddress;
         while (cidrUtils.isInRange(newIp)) {
             String[] ip = newIp.split("\\.", -1);
             Integer last = Integer.parseInt(ip[ip.length - 1]);
-
+            
             if (last < 255) {
                 Integer checkIp = last + 1;
                 ip[ip.length - 1] = checkIp.toString();
@@ -44,12 +50,14 @@ public class IPService {
                     System.out.println("here");
                     break;
                 }
+                Optional<IPModel> possibleIp = ipRepo.findByip(newIp);
+                if (possibleIp.isPresent()){
+                    return"Ip is already in network" ;
+                } 
                 IPModel activeIp = new IPModel();
                 activeIp.setIp(newIp);
                 activeIp.setStatus("Active");
                 ipRepo.save(activeIp);
-                System.out.println(activeIp);
-
             } else {
                 ip[ip.length - 1] = "0";
                 Integer checkIp = Integer.parseInt(ip[ip.length - 2]) + 1;
@@ -59,10 +67,18 @@ public class IPService {
                     System.out.println("here");
                     break;
                 }
-                System.out.println(newIp);
-
+                Optional<IPModel> possibleIp = ipRepo.findByip(newIp);
+                if (possibleIp.isPresent()){
+                    return"Ip is already in network" ;
+                } 
+                IPModel activeIp = new IPModel();
+                activeIp.setIp(newIp);
+                activeIp.setStatus("Active");
+                ipRepo.save(activeIp);
             }
+            System.out.println(newIp);
         }
+        return "Success";
     }
 
     // --------------Acquire a single ip ----------------------------//
@@ -73,6 +89,12 @@ public class IPService {
         } 
         
         IPModel foundIp = possibleIp.get();
+        if ( foundIp.getStatus().equals("Network")){
+            return foundIp.getIp() + " is the Network Address and can't be Acquired";
+        }
+        if ( foundIp.getStatus().equals("Brodcast")){
+            return foundIp.getIp() + " is the Brodcast Address and can't be Acquired";
+        }
         if (foundIp.getStatus().equals("Acquired")){
         return foundIp.getIp() + " is already Acquired";
         }
@@ -88,6 +110,12 @@ public class IPService {
             return"Ip is not in network" ;
         } 
         IPModel foundIp = possibleIp.get();
+        if ( foundIp.getStatus().equals("Network")){
+            return foundIp.getIp() + " is the Network Address and can't be set to Active";
+        }
+        if ( foundIp.getStatus().equals("Brodcast")){
+            return foundIp.getIp() + " is the Brodcast Address and can't be set to Active";
+        }
         if (foundIp.getStatus().equals("Active")){
             return foundIp.getIp() + " is not Acquired yet";
         }

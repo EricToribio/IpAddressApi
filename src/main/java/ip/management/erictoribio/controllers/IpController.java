@@ -3,11 +3,10 @@ package ip.management.erictoribio.controllers;
 import java.net.UnknownHostException;
 import java.util.List;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,9 +20,9 @@ public class IpController {
 
      // ----------------Add all ips in CIDR Block----------------------//
     @PostMapping("/api/add/block")
-    public void addBlock(@RequestBody String ip) throws UnknownHostException {
-        String newIp = ip.replace("%2F", "/").replace("ip=", "");
-    ipService.addBlock( newIp);
+    public String addBlock(@RequestBody IPModel ip) throws UnknownHostException {
+        System.out.println(ip.getIp());
+    return ipService.addBlock( ip.getIp());
     }
 
     // --------------Find All Ip addresses in the system---------------------//
@@ -33,20 +32,16 @@ public class IpController {
     }
 
     // --------------Acquire a single ip ----------------------------//
-    @PostMapping("/api/acquire/ip")
-    public String acquireIp(@RequestBody String ip){
-        String newIp = ip.replace("ip=", "");
-        System.out.println(newIp);
-        String potentialIp = ipService.acquireIp(newIp);
+    @PutMapping("/api/acquire/ip")
+    public String acquireIp(@RequestBody IPModel ip){
+        String potentialIp = ipService.acquireIp(ip.getIp());
         return potentialIp;
     }
 
      //----------------------Release A single ip-----------------------//
-    @PostMapping("/api/release/ip")
-    public String releaseIp(@RequestBody String ip){
-        String newIp = ip.replace("ip=", "");
-        System.out.println(newIp);
-        String potentialIp = ipService.releaseIp(newIp);
+    @PutMapping("/api/release/ip")
+    public String releaseIp(@RequestBody IPModel ip){
+        String potentialIp = ipService.releaseIp(ip.getIp());
         return potentialIp;
     }
 }
